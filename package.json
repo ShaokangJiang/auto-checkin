@@ -1,0 +1,26 @@
+{
+  "name": "auto-checkin",
+  "version": "1.0.0",
+  "description": "",
+  "main": "a.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/ShaokangJiang/auto-checkin.git"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "bugs": {
+    "url": "https://github.com/ShaokangJiang/auto-checkin/issues"
+  },
+  "homepage": "https://github.com/ShaokangJiang/auto-checkin#readme",
+  "dependencies": {
+    "moment-timezone": "^0.5.33",
+    "node-fetch": "^2.6.1",
+    "puppeteer": "^8.0.0",
+    "solarlunar": "^2.0.7"
+  }
+}
