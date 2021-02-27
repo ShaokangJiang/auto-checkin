@@ -158,7 +158,7 @@ async function mainFunction1() {
     // use try catch without timeout at here
     // const browser = await puppeteer.launch({ headless: true , args: [`--no-sandbox`, `--disable-setuid-sandbox`]});\
     let message = "";
-    browser = await puppeteer.launch({ headless: false });
+    browser = await puppeteer.launch({ headless: true });
     const page = await browser.newPage();
     await page.setDefaultNavigationTimeout(500000);
     await page.setViewport({ width: 1920, height: 1080 });
