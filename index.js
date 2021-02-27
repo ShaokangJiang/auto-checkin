@@ -7,7 +7,7 @@ const cookie = require('cookie');
 const HTMLParser = require('node-html-parser');
 const core = require('@actions/core');
 
-const { USERNAME: USERNAME, PASSWORD: PASSWORD, dataStr2: DATASTR2, dataStr3: DATASTR3, APP_TOKEN: APP_TOKEN, UID: UID  } = process.env;
+const { USERNAME: USERNAME, PASSWORD: PASSWORD, DATASTR2: DATASTR2, DATASTR3: DATASTR3, APP_TOKEN: APP_TOKEN, UID: UID  } = process.env;
 
 // const USERNAME = core.getInput("USERNAME");
 // const PASSWORD = core.getInput("PASSWORD");
@@ -17,6 +17,8 @@ const { USERNAME: USERNAME, PASSWORD: PASSWORD, dataStr2: DATASTR2, dataStr3: DA
 
 // const APP_TOKEN = core.getInput("APP_TOKEN");
 // const UID = core.getInput("UID");
+const dataStr2 = DATASTR2;
+const dataStr3 = DATASTR3;
 
 if(USERNAME.localeCompare("") == 0 || PASSWORD.localeCompare("") == 0 || dataStr2.localeCompare("") == 0 || dataStr3.localeCompare("") == 0 || APP_TOKEN.localeCompare("") == 0 || UID.localeCompare("") == 0){
     core.setFailed(`Action failed because of empty required secrets.`);
