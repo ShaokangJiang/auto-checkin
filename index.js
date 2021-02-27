@@ -172,12 +172,14 @@ async function mainFunction1() {
             req.continue();
         }
     });
-    await page.goto('http://ehall.csust.edu.cn/'); // wait until page load
-    await page.waitForSelector('#password');
+    console.log("Start the first page")
+    await page.goto('http://ehall.csust.edu.cn/', { waitUntil: 'networkidle0' }); // wait until page load
     await page.type('#username', USERNAME);
     await page.type('#password', PASSWORD);
     await page.click('button[type=submit]');
+    console.log("Start login")
     await page.waitForNavigation({ waitUntil: 'load' });
+    console.log("Logged in")
     await page.goto('http://ehall.csust.edu.cn/qljfwapp/sys/lwReportEpidemic/index.do', { waitUntil: 'domcontentloaded' }); // wait until page load
     newCookies = await page.cookies();
 
