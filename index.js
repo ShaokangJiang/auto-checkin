@@ -7,7 +7,7 @@ const cookie = require('cookie');
 const HTMLParser = require('node-html-parser');
 const core = require('@actions/core');
 
-const { USERNAME: USERNAME, PASSWORD: PASSWORD, DATASTR2: DATASTR2, DATASTR3: DATASTR3, APP_TOKEN: APP_TOKEN, UID: UID  } = process.env;
+const { USERNAME: USERNAME, PASSWORD: PASSWORD, DATASTR2: DATASTR2, DATASTR3: DATASTR3, APP_TOKEN: APP_TOKEN, UID: UID } = process.env;
 
 // const USERNAME = core.getInput("USERNAME");
 // const PASSWORD = core.getInput("PASSWORD");
@@ -20,7 +20,7 @@ const { USERNAME: USERNAME, PASSWORD: PASSWORD, DATASTR2: DATASTR2, DATASTR3: DA
 const dataStr2 = DATASTR2;
 const dataStr3 = DATASTR3;
 
-if(USERNAME.localeCompare("") == 0 || PASSWORD.localeCompare("") == 0 || dataStr2.localeCompare("") == 0 || dataStr3.localeCompare("") == 0 || APP_TOKEN.localeCompare("") == 0 || UID.localeCompare("") == 0){
+if (USERNAME.localeCompare("") == 0 || PASSWORD.localeCompare("") == 0 || dataStr2.localeCompare("") == 0 || dataStr3.localeCompare("") == 0 || APP_TOKEN.localeCompare("") == 0 || UID.localeCompare("") == 0) {
     core.setFailed(`Action failed because of empty required secrets.`);
 }
 
@@ -158,15 +158,27 @@ async function mainFunction1() {
     // use try catch without timeout at here
     // const browser = await puppeteer.launch({ headless: true , args: [`--no-sandbox`, `--disable-setuid-sandbox`]});\
     let message = "";
-    browser = await puppeteer.launch({ headless: true });
+    browser = await puppeteer.launch({ headless: false });
     const page = await browser.newPage();
-    await page.setDefaultNavigationTimeout(900000);
-    await page.goto('http://ehall.csust.edu.cn/', { waitUntil: 'networkidle0' }); // wait until page load
+    await page.setDefaultNavigationTimeout(500000);
+    await page.setViewport({ width: 1920, height: 1080 });
+    await page.setRequestInterception(true);
+
+    page.on('request', (req) => {
+        if (req.resourceType() === 'image') {
+            req.abort();
+        }
+        else {
+            req.continue();
+        }
+    });
+    await page.goto('http://ehall.csust.edu.cn/'); // wait until page load
+    await page.waitForSelector('#password');
     await page.type('#username', USERNAME);
     await page.type('#password', PASSWORD);
     await page.click('button[type=submit]');
-    await page.waitForNavigation({ waitUntil: 'networkidle0' });
-    await page.goto('http://ehall.csust.edu.cn/qljfwapp/sys/lwReportEpidemic/index.do', { waitUntil: 'networkidle0' }); // wait until page load
+    await page.waitForNavigation({ waitUntil: 'load' });
+    await page.goto('http://ehall.csust.edu.cn/qljfwapp/sys/lwReportEpidemic/index.do', { waitUntil: 'domcontentloaded' }); // wait until page load
     newCookies = await page.cookies();
 
     let historyData = await page.evaluate(async () => {
