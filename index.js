@@ -201,9 +201,14 @@ async function mainFunction1() {
     hrstart = process.hrtime();
     core.info("Start login")
     try {
-        await page.waitForNavigation({ waitUntil: 'networkidle0', timeout: 250000 });
+        await page.waitForNavigation({ waitUntil: 'networkidle0', timeout: 150000 });
     } catch (e) {
-        core.error("Wait too long for portal page, skip to the next step")
+        try {
+            core.error("Wait too long for portal page, try to reload")
+            await page.reload({ waitUntil: 'networkidle0', timeout: 200000 });
+        } catch (e) {
+            core.error("Wait too long for portal page, skip to the next step")
+        }
     }
     hrend = process.hrtime(hrstart);
     core.info("Logged in in " + hrend[0] + "s")
