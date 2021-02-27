@@ -7,14 +7,16 @@ const cookie = require('cookie');
 const HTMLParser = require('node-html-parser');
 const core = require('@actions/core');
 
-const USERNAME = core.getInput("USERNAME");
-const PASSWORD = core.getInput("PASSWORD");
-// const dataStr1 = "WID=BA6601DA1C2C4FE2E0540010E03A9B2A&NEED_CHECKIN_DATE="; // + "2021-02-19" + 
-const dataStr2 = core.getInput("DATASTR2");
-const dataStr3 = core.getInput("DATASTR3");
+const { USERNAME: USERNAME, PASSWORD: PASSWORD, dataStr2: DATASTR2, dataStr3: DATASTR3, APP_TOKEN: APP_TOKEN, UID: UID  } = process.env;
 
-const APP_TOKEN = core.getInput("APP_TOKEN");
-const UID = core.getInput("UID");
+// const USERNAME = core.getInput("USERNAME");
+// const PASSWORD = core.getInput("PASSWORD");
+// // const dataStr1 = "WID=BA6601DA1C2C4FE2E0540010E03A9B2A&NEED_CHECKIN_DATE="; // + "2021-02-19" + 
+// const dataStr2 = core.getInput("DATASTR2");
+// const dataStr3 = core.getInput("DATASTR3");
+
+// const APP_TOKEN = core.getInput("APP_TOKEN");
+// const UID = core.getInput("UID");
 
 if(USERNAME.localeCompare("") == 0 || PASSWORD.localeCompare("") == 0 || dataStr2.localeCompare("") == 0 || dataStr3.localeCompare("") == 0 || APP_TOKEN.localeCompare("") == 0 || UID.localeCompare("") == 0){
     core.setFailed(`Action failed because of empty required secrets.`);
