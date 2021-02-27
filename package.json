@@ -20,6 +20,7 @@
   "dependencies": {
     "@actions/core": "^1.2.6",
     "cookie": "^0.4.1",
+    "dotenv": "^8.2.0",
     "moment-timezone": "^0.5.33",
     "node-fetch": "^2.6.1",
     "node-html-parser": "^3.0.3",

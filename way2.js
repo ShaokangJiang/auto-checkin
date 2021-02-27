@@ -6,8 +6,11 @@ const urlencode = require('urlencode');
 const cookie = require('cookie');
 const HTMLParser = require('node-html-parser');
 const core = require('@actions/core');
+const dotenv = require("dotenv")
 
-const { NAME: NAME, USERNAME: USERNAME, PASSWORD: PASSWORD, DATASTR2: DATASTR2, DATASTR3: DATASTR3, APP_TOKEN: APP_TOKEN, UID: UID } = process.env;
+dotenv.config()
+
+const { NAME: NAME, PASSWORD: PASSWORD, DATASTR2: DATASTR2, DATASTR3: DATASTR3, APP_TOKEN: APP_TOKEN, UID: UID } = process.env;
 
 // const USERNAME = core.getInput("USERNAME");
 // const PASSWORD = core.getInput("PASSWORD");
@@ -21,6 +24,7 @@ const dataStr2 = DATASTR2;
 const dataStr3 = DATASTR3;
 const USERNAME = NAME;
 
+return;
 if (USERNAME.localeCompare("") == 0 || PASSWORD.localeCompare("") == 0 || dataStr2.localeCompare("") == 0 || dataStr3.localeCompare("") == 0 || APP_TOKEN.localeCompare("") == 0 || UID.localeCompare("") == 0) {
     core.setFailed(`Action failed because of empty required secrets.`);
 }
@@ -77,40 +81,40 @@ function getDataRaw() {
 }
 
 
-// async function mainFunction() {
-//     let init = await
-//         fetch("http://authserver.csust.edu.cn/authserver/login?service=http%3A%2F%2Fehall.csust.edu.cn%2Flogin%3Fservice%3Dhttp%3A%2F%2Fehall.csust.edu.cn%2Fnew%2Findex.html", {
-//             "headers": {
-//                 "accept": "text/html,application/xhtml+xml,application/xml;q=0.9,image/avif,image/webp,image/apng,*/*;q=0.8,application/signed-exchange;v=b3;q=0.9",
-//                 "accept-language": "en-US,en;q=0.9",
-//                 "cache-control": "no-cache",
-//                 "pragma": "no-cache",
-//                 "upgrade-insecure-requests": "1"
-//             },
-//             "referrerPolicy": "strict-origin-when-cross-origin",
-//             "body": null,
-//             "method": "GET",
-//             "mode": "cors"
-//         });
+async function mainFunction() {
+    let init = await
+        fetch("http://authserver.csust.edu.cn/authserver/login?service=http%3A%2F%2Fehall.csust.edu.cn%2Flogin%3Fservice%3Dhttp%3A%2F%2Fehall.csust.edu.cn%2Fnew%2Findex.html", {
+            "headers": {
+                "accept": "text/html,application/xhtml+xml,application/xml;q=0.9,image/avif,image/webp,image/apng,*/*;q=0.8,application/signed-exchange;v=b3;q=0.9",
+                "accept-language": "en-US,en;q=0.9",
+                "cache-control": "no-cache",
+                "pragma": "no-cache",
+                "upgrade-insecure-requests": "1"
+            },
+            "referrerPolicy": "strict-origin-when-cross-origin",
+            "body": null,
+            "method": "GET",
+            "mode": "cors"
+        });
 
-//     for (const header of init.headers) {
-//         if (header[0].localeCompare("set-cookie") == 0) {
-//             let tmp = header[1].split(",");
-//             for (const a of tmp) {
-//                 let content = cookie.parse(a);
-//                 for (const parameter of Object.keys(content)) {
-//                     Cookies[parameter] = content[parameter];
-//                 }
-//             }
-//         }
-//         console.log(`Name: ${header[0]}, Value:${header[1]}`);
-//     }
+    for (const header of init.headers) {
+        if (header[0].localeCompare("set-cookie") == 0) {
+            let tmp = header[1].split(",");
+            for (const a of tmp) {
+                let content = cookie.parse(a);
+                for (const parameter of Object.keys(content)) {
+                    Cookies[parameter] = content[parameter];
+                }
+            }
+        }
+        console.log(`Name: ${header[0]}, Value:${header[1]}`);
+    }
 
-//     let content = HTMLParser.parse(await init.text());
+    let content = HTMLParser.parse(await init.text());
 
-//     console.log(content);
+    console.log(content);
 
-// }
+}
 
 function buildCookies() {
     var toRe = "";
@@ -175,7 +179,7 @@ async function mainFunction1() {
     });
     core.info("Start the first page")
     await page.goto('http://ehall.csust.edu.cn/', { waitUntil: 'networkidle0' }); // wait until page load
-    core.info("Finish loading the first page")
+    core.info("Start the first page")
     await page.type('#username', USERNAME);
     await page.type('#password', PASSWORD);
     await page.click('button[type=submit]');
