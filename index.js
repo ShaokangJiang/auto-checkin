@@ -7,7 +7,7 @@ const cookie = require('cookie');
 const HTMLParser = require('node-html-parser');
 const core = require('@actions/core');
 
-const { NAME: NAME, USERNAME: USERNAME, PASSWORD: PASSWORD, DATASTR2: DATASTR2, DATASTR3: DATASTR3, APP_TOKEN: APP_TOKEN, UID: UID } = process.env;
+const { NAME: NAME, PASSWORD: PASSWORD, DATASTR2: DATASTR2, DATASTR3: DATASTR3, APP_TOKEN: APP_TOKEN, UID: UID } = process.env;
 
 // const USERNAME = core.getInput("USERNAME");
 // const PASSWORD = core.getInput("PASSWORD");
