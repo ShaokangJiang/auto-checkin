@@ -172,14 +172,19 @@ async function mainFunction1() {
             req.continue();
         }
     });
-    console.log("Start the first page")
+    core.info("Start the first page")
     await page.goto('http://ehall.csust.edu.cn/', { waitUntil: 'networkidle0' }); // wait until page load
+    core.info("Start the first page")
     await page.type('#username', USERNAME);
     await page.type('#password', PASSWORD);
     await page.click('button[type=submit]');
-    console.log("Start login")
-    await page.waitForNavigation({ waitUntil: 'load' });
-    console.log("Logged in")
+    core.info("Start login")
+    try {
+        await page.waitForNavigation({ waitUntil: 'load' });
+    } catch (e) {
+        core.error("Wait too long for login page, skip to the next step")
+    }
+    core.info("Logged in")
     await page.goto('http://ehall.csust.edu.cn/qljfwapp/sys/lwReportEpidemic/index.do', { waitUntil: 'domcontentloaded' }); // wait until page load
     newCookies = await page.cookies();
 
@@ -205,7 +210,7 @@ async function mainFunction1() {
         return JSON.stringify(responseContent);
     });
 
-    console.log("Get History Data")
+    core.info("Get History Data")
     historyData = JSON.parse(historyData);
 
     //Get today has reported
@@ -231,7 +236,7 @@ async function mainFunction1() {
 
         return JSON.stringify(responseContent);
     });
-    console.log("Get Has reported")
+    core.info("Get Has reported")
     HasReported = JSON.parse(HasReported);
     if (HasReported.datas.getTodayHasReported.totalSize == 0) { // not reported
         //Get server time
@@ -256,17 +261,17 @@ async function mainFunction1() {
 
             return JSON.stringify(responseContent);
         });
-        console.log("server Time:")
+        core.info("server Time:")
         let a = JSON.parse(serverTime);
         if (a.msg.localeCompare("成功") == 0) {
-            console.log("Success" + a.data.date)
+            core.info("Success" + a.data.date)
         } else {
             throw new Error('Failed to get server time');
         }
         // let CheckinDate = mapString(a.data.date.split(" ")[0]);
         // let TimeSubmit = mapString(a.data.date);
         let TimeCreate = mapString(a.data.date.substring(0, a.data.date.length - 3));
-        console.log("Time Created:" + TimeCreate)
+        core.info("Time Created:" + TimeCreate)
 
 
         let todayInfo = await page.evaluate(async () => {
@@ -295,7 +300,7 @@ async function mainFunction1() {
         let CZRQ = mapString(todayInfo.datas.getMyTodayReportWid.rows[0].CZRQ); //sample 2021-02-27 00:45:58
         let WID = todayInfo.datas.getMyTodayReportWid.rows[0].WID; // sample BC1BFB84364300E4E0540010E03A9B2A
         let NEED_CHECKIN_DATE = todayInfo.datas.getMyTodayReportWid.rows[0].NEED_CHECKIN_DATE;//2021-02-27
-        console.log("CZRQ:" + CZRQ + "WID:" + WID + "NEED:" + NEED_CHECKIN_DATE);
+        core.info("CZRQ:" + CZRQ + "WID:" + WID + "NEED:" + NEED_CHECKIN_DATE);
 
         // let submitContent = dataStr1 + CheckinDate + dataStr2 + TimeSubmit + "&USER_ID=" + USERNAME + dataStr3 + TimeCreate;
         let submitContent = "WID=" + WID + "&NEED_CHECKIN_DATE=" + NEED_CHECKIN_DATE + dataStr2 + CZRQ + "&USER_ID=" + USERNAME + dataStr3 + TimeCreate;
@@ -323,8 +328,8 @@ async function mainFunction1() {
 
             return JSON.stringify(responseContent);
         }, submitContent);
-        console.log("submission return:");
-        console.log(submission);
+        core.info("submission return:");
+        //console.log(submission);
 
         submission = JSON.parse(submission);
         if (submission.code.localeCompare("#E111080000000") == 0) {//has submitted
@@ -353,7 +358,7 @@ async function mainFunction1() {
                 return JSON.stringify(responseContent);
             });
 
-            console.log("Get History Data")
+            core.info("Get History Data")
             historyData = JSON.parse(historyData);
             message += "最近一次数据为\nNEED_CHECKIN_DATE:" + historyData.datas.getMyDailyReportDatas.rows[0].NEED_CHECKIN_DATE + "\nCREATED_AT:" + historyData.datas.getMyDailyReportDatas.rows[0].CREATED_AT;
         }
