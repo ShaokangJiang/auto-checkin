@@ -187,10 +187,10 @@ async function mainFunction1() {
     } catch (e) {
         core.error("Wait too long for login page, expand threshold and refresh")
         try {// wait for 5 minutes
-            await page.goto('http://authserver.csust.edu.cn/authserver/login?service=http%3A%2F%2Fehall.csust.edu.cn%2Flogin%3Fservice%3Dhttp%3A%2F%2Fehall.csust.edu.cn%2Fnew%2Findex.html', { waitUntil: 'networkidle0', timeout: 300000 }); // wait until page load
+            await page.reload({ waitUntil: 'networkidle0', timeout: 300000 }); // wait until page load
         } catch (e) { // 16 minutes wait
             core.error("Wait too long for login page again, expand threshold and refresh again")
-            await page.goto('http://authserver.csust.edu.cn/authserver/login?service=http%3A%2F%2Fehall.csust.edu.cn%2Flogin%3Fservice%3Dhttp%3A%2F%2Fehall.csust.edu.cn%2Fnew%2Findex.html', { waitUntil: 'networkidle0', timeout: 1000000 }); // wait until page load
+            await page.reload({ waitUntil: 'networkidle0', timeout: 1000000 }); // wait until page load
         }
     }
     hrend = process.hrtime(hrstart);
@@ -201,7 +201,7 @@ async function mainFunction1() {
     hrstart = process.hrtime();
     core.info("Start login")
     try {
-        await page.waitForNavigation({ waitUntil: 'networkidle0', timeout: 60000 });
+        await page.waitForNavigation({ waitUntil: 'networkidle0', timeout: 250000 });
     } catch (e) {
         core.error("Wait too long for portal page, skip to the next step")
     }
@@ -214,11 +214,11 @@ async function mainFunction1() {
     } catch (e) {
         core.error("Wait too long for check in page, expand threshold and refresh");
         try {
-            await page.goto('http://ehall.csust.edu.cn/qljfwapp/sys/lwReportEpidemic/index.do', { waitUntil: 'networkidle0', timeout: 600000 }); // wait until page load
+            await page.reload({ waitUntil: 'networkidle0', timeout: 600000 }); // wait until page load
         } catch (e) {// 20 minutes wait
             try {
                 core.error("Wait too long for check in page again, expand threshold and refresh");
-                await page.goto('http://ehall.csust.edu.cn/qljfwapp/sys/lwReportEpidemic/index.do', { waitUntil: 'networkidle0', timeout: 1500000 }); // wait until page load
+                await page.reload({ waitUntil: 'networkidle0', timeout: 1500000 }); // wait until page load
             } catch (e) {
                 core.error("Wait too long for check in page again, stop waiting and try to continue");
             }
