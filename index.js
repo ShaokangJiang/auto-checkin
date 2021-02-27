@@ -163,6 +163,7 @@ async function mainFunction1() {
     // use try catch without timeout at here
     // const browser = await puppeteer.launch({ headless: true , args: [`--no-sandbox`, `--disable-setuid-sandbox`]});\
     let message = "";
+    let hrstart = process.hrtime();
     browser = await puppeteer.launch({ headless: true });
     const page = await browser.newPage();
     // await page.setDefaultNavigationTimeout(500000);
@@ -177,7 +178,10 @@ async function mainFunction1() {
             req.continue();
         }
     });
-    core.info("Start the first page")
+    let hrend = process.hrtime(hrstart);
+
+    core.info("Start the first page, browser initialized in " + hrend[0] + "s")
+    hrstart = process.hrtime();
     try {// wait for 60 seconds
         await page.goto('http://authserver.csust.edu.cn/authserver/login?service=http%3A%2F%2Fehall.csust.edu.cn%2Flogin%3Fservice%3Dhttp%3A%2F%2Fehall.csust.edu.cn%2Fnew%2Findex.html', { waitUntil: 'networkidle0', timeout: 60000 }); // wait until page load
     } catch (e) {
@@ -189,17 +193,22 @@ async function mainFunction1() {
             await page.goto('http://authserver.csust.edu.cn/authserver/login?service=http%3A%2F%2Fehall.csust.edu.cn%2Flogin%3Fservice%3Dhttp%3A%2F%2Fehall.csust.edu.cn%2Fnew%2Findex.html', { waitUntil: 'networkidle0', timeout: 1000000 }); // wait until page load
         }
     }
-    core.info("Finish loading the first page")
+    hrend = process.hrtime(hrstart);
+    core.info("Finish loading the first page, first page loaded in " + hrend[0] + "s")
     await page.type('#username', USERNAME);
     await page.type('#password', PASSWORD);
     await page.click('button[type=submit]');
+    hrstart = process.hrtime();
     core.info("Start login")
     try {
         await page.waitForNavigation({ waitUntil: 'networkidle0', timeout: 60000 });
     } catch (e) {
         core.error("Wait too long for portal page, skip to the next step")
     }
-    core.info("Logged in")
+    hrend = process.hrtime(hrstart);
+    core.info("Logged in in " + hrend[0] + "s")
+    hrstart = process.hrtime();
+    core.info("Start to load check in page")
     try {
         await page.goto('http://ehall.csust.edu.cn/qljfwapp/sys/lwReportEpidemic/index.do', { waitUntil: 'networkidle0', timeout: 300000 }); // wait until page load
     } catch (e) {
@@ -215,8 +224,12 @@ async function mainFunction1() {
             }
         }
     }
+    hrend = process.hrtime(hrstart);
+    core.info("Portal page loaded in " + (hrend[0] / 60) + "min")
     newCookies = await page.cookies();
 
+    hrstart = process.hrtime();
+    core.info("Start to get history data")
     let historyData = await page.evaluate(async () => {
         let response = await fetch("http://ehall.csust.edu.cn/qljfwapp/sys/lwReportEpidemic/modules/dailyReport/getMyDailyReportDatas.do", {
             "headers": {
@@ -238,11 +251,13 @@ async function mainFunction1() {
 
         return JSON.stringify(responseContent);
     });
-
-    core.info("Get History Data")
+    hrend = process.hrtime(hrstart);
+    core.info("Get History Data in " + hrend[0] + "s")
     historyData = JSON.parse(historyData);
 
     //Get today has reported
+    hrstart = procecss.hrtime();
+    core.info("Start to load HasReported info")
     let HasReported = await page.evaluate(async () => {
         let response = await fetch("http://ehall.csust.edu.cn/qljfwapp/sys/lwReportEpidemic/modules/dailyReport/getTodayHasReported.do", {
             "headers": {
@@ -265,9 +280,14 @@ async function mainFunction1() {
 
         return JSON.stringify(responseContent);
     });
-    core.info("Get Has reported")
+    hrend = process.hrtime(hrstart);
+    core.info("Get Has reported in " + hrend[0] + "s")
     HasReported = JSON.parse(HasReported);
+
     if (HasReported.datas.getTodayHasReported.totalSize == 0) { // not reported
+        hrstart = process.hrtime();
+
+        core.info("Start check in process")
         //Get server time
         const serverTime = await page.evaluate(async () => {
             let response = await fetch("http://ehall.csust.edu.cn/qljfwapp/sys/lwReportEpidemic/api/daily/getServerTime.do", {
@@ -392,6 +412,8 @@ async function mainFunction1() {
             message += "最近一次数据为\nNEED_CHECKIN_DATE:" + historyData.datas.getMyDailyReportDatas.rows[0].NEED_CHECKIN_DATE + "\nCREATED_AT:" + historyData.datas.getMyDailyReportDatas.rows[0].CREATED_AT;
         }
 
+        hrend = process.hrtime(hrstart);
+        core.info("Check in finished in " + hrend[0] + "s")
     } else { //reported, send message notificaation
         message += "检测到已签到，最近一次数据为\nNEED_CHECKIN_DATE:" + historyData.datas.getMyDailyReportDatas.rows[0].NEED_CHECKIN_DATE + "\nCREATED_AT:" + historyData.datas.getMyDailyReportDatas.rows[0].CREATED_AT;
     }
@@ -404,8 +426,11 @@ async function main() {
     //console.log(await getSchoolData());
     //mainFunction();
     try {
+        let hrstart = process.hrtime();
         let mainMessage = await mainFunction1();
-        await sendMessage("打卡成功\n" + getTime() + mainMessage);
+        let hrend = process.hrtime(hrstart);
+
+        await sendMessage("打卡成功\n" + getTime() + mainMessage + "\n用时:" + (hrend[0] / 60) + "分钟");
     } catch (e) {
         await sendMessage("打卡失败\n" + getTime() + "发生了错误，详情:" + e);
         await browser.close();
