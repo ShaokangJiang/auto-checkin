@@ -230,7 +230,7 @@ async function mainFunction1() {
         }
     }
     hrend = process.hrtime(hrstart);
-    core.info("Portal page loaded in " + (hrend[0] / 60) + "min")
+    core.info("Check in page loaded in " + (hrend[0] / 60).toFixed(2) + "min")
     newCookies = await page.cookies();
 
     hrstart = process.hrtime();
@@ -435,7 +435,7 @@ async function main() {
         let mainMessage = await mainFunction1();
         let hrend = process.hrtime(hrstart);
 
-        await sendMessage("打卡成功\n" + getTime() + mainMessage + "\n用时:" + (hrend[0] / 60) + "分钟");
+        await sendMessage("打卡成功\n" + getTime() + mainMessage + "\n用时:" + (hrend[0] / 60).toFixed(2) + "分钟");
     } catch (e) {
         await sendMessage("打卡失败\n" + getTime() + "发生了错误，详情:" + e);
         await browser.close();
