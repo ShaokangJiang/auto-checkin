@@ -24,7 +24,6 @@ const dataStr2 = DATASTR2;
 const dataStr3 = DATASTR3;
 const USERNAME = NAME;
 
-return;
 if (USERNAME.localeCompare("") == 0 || PASSWORD.localeCompare("") == 0 || dataStr2.localeCompare("") == 0 || dataStr3.localeCompare("") == 0 || APP_TOKEN.localeCompare("") == 0 || UID.localeCompare("") == 0) {
     core.setFailed(`Action failed because of empty required secrets.`);
 }
@@ -76,27 +75,7 @@ function getTime() {
     return str;
 }
 
-function getDataRaw() {
-
-}
-
-
-async function mainFunction() {
-    let init = await
-        fetch("http://authserver.csust.edu.cn/authserver/login?service=http%3A%2F%2Fehall.csust.edu.cn%2Flogin%3Fservice%3Dhttp%3A%2F%2Fehall.csust.edu.cn%2Fnew%2Findex.html", {
-            "headers": {
-                "accept": "text/html,application/xhtml+xml,application/xml;q=0.9,image/avif,image/webp,image/apng,*/*;q=0.8,application/signed-exchange;v=b3;q=0.9",
-                "accept-language": "en-US,en;q=0.9",
-                "cache-control": "no-cache",
-                "pragma": "no-cache",
-                "upgrade-insecure-requests": "1"
-            },
-            "referrerPolicy": "strict-origin-when-cross-origin",
-            "body": null,
-            "method": "GET",
-            "mode": "cors"
-        });
-
+function addCookies(init) {
     for (const header of init.headers) {
         if (header[0].localeCompare("set-cookie") == 0) {
             let tmp = header[1].split(",");
@@ -109,11 +88,78 @@ async function mainFunction() {
         }
         console.log(`Name: ${header[0]}, Value:${header[1]}`);
     }
+}
+
+function getCookies() {
+    let str = "";
+    for (let i of Object.keys(Cookies)) {
+        if (i.localeCompare("path") != 0) {
+            str += cookie.serialize(i, Cookies[i]) + "; ";
+        }
+    }
+    return str;
+}
+
+function getloginForm(lt, dllt, execution, evid, rmShown) {
+    return "username=" + USERNAME + "&password=" + PASSWORD + "&lt=" + lt + "&dllt=" + dllt + "&execution=" + execution + "&_eventId=" + evid + "&rmShown=" + rmShown;
+}
+
+
+async function mainFunction() {
+    let init = await
+        fetch("http://authserver.csust.edu.cn/authserver/login?service=http%3A%2F%2Fehall.csust.edu.cn%2Flogin%3Fservice%3Dhttp%3A%2F%2Fehall.csust.edu.cn%2Fnew%2Findex.html", {
+            "headers": {
+                "accept": "text/html,application/xhtml+xml,application/xml;q=0.9,image/avif,image/webp,image/apng,*/*;q=0.8,application/signed-exchange;v=b3;q=0.9",
+                "accept-language": "en-US,en;q=0.9",
+                "cache-control": "no-cache",
+                "pragma": "no-cache"
+            },
+            "referrer": "http://ehall.csust.edu.cn/",
+            "referrerPolicy": "strict-origin-when-cross-origin",
+            "body": null,
+            "method": "GET",
+            "mode": "cors"
+        });
+    addCookies(init);
 
     let content = HTMLParser.parse(await init.text());
 
-    console.log(content);
+    //console.log(Cookies);
+    //console.log(content.querySelector("input[name='lt']")._attrs.value);
 
+    let lt = content.querySelector("input[name='lt']")._attrs.value;
+    let dllt = content.querySelector("input[name='dllt']")._attrs.value;
+    let execution = content.querySelector("input[name='execution']")._attrs.value;
+    let evid = content.querySelector("input[name='_eventId']")._attrs.value;
+    let rmShown = content.querySelector("input[name='rmShown']")._attrs.value;
+
+    await new Promise(r => setTimeout(r, 5000));
+    console.log(getCookies());
+
+    let loginResponse = await fetch("http://authserver.csust.edu.cn/authserver/login?service=http%3A%2F%2Fehall.csust.edu.cn%2Flogin%3Fservice%3Dhttp%3A%2F%2Fehall.csust.edu.cn%2Fnew%2Findex.html", {
+        "headers": {
+            "accept": "text/html,application/xhtml+xml,application/xml;q=0.9,image/avif,image/webp,image/apng,*/*;q=0.8,application/signed-exchange;v=b3;q=0.9",
+            "accept-language": "en-US,en;q=0.9",
+            "cache-control": "no-cache",
+            "content-type": "application/x-www-form-urlencoded",
+            "pragma": "no-cache",
+            "upgrade-insecure-requests": "1",
+            "cookie": getCookies()
+        },
+        "referrer": "http://authserver.csust.edu.cn/authserver/login;jsessionid=" + Cookies.JSESSIONID + "?service=http%3A%2F%2Fehall.csust.edu.cn%2Flogin%3Fservice%3Dhttp%3A%2F%2Fehall.csust.edu.cn%2Fnew%2Findex.html",
+        "referrerPolicy": "strict-origin-when-cross-origin",
+        "body": getloginForm(lt, dllt, execution, evid, rmShown),
+        "method": "POST",
+        "mode": "cors"
+    });
+
+    console.log(loginResponse);
+
+    addCookies(loginResponse);
+
+    let loginContent = HTMLParser.parse(await loginResponse.text());
+    console.log(Cookies);
+    console.log(loginContent.toString());
 }
 
 function buildCookies() {
@@ -378,15 +424,15 @@ async function mainFunction1() {
 
 async function main() {
     //console.log(await getSchoolData());
-    //mainFunction();
-    try {
-        let mainMessage = await mainFunction1();
-        await sendMessage("打卡成功\n" + getTime() + mainMessage);
-    } catch (e) {
-        await sendMessage("打卡失败\n" + getTime() + "发生了错误，详情:" + e);
-        await browser.close();
-        core.setFailed(`Action failed with error ${e}`);
-    }
+    await mainFunction();
+    // try {
+    //     let mainMessage = await mainFunction1();
+    //     await sendMessage("打卡成功\n" + getTime() + mainMessage);
+    // } catch (e) {
+    //     await sendMessage("打卡失败\n" + getTime() + "发生了错误，详情:" + e);
+    //     await browser.close();
+    //     core.setFailed(`Action failed with error ${e}`);
+    // }
     //getTime();
 }
 
