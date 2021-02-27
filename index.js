@@ -261,7 +261,7 @@ async function mainFunction1() {
     historyData = JSON.parse(historyData);
 
     //Get today has reported
-    hrstart = procecss.hrtime();
+    hrstart = process.hrtime();
     core.info("Start to load HasReported info")
     let HasReported = await page.evaluate(async () => {
         let response = await fetch("http://ehall.csust.edu.cn/qljfwapp/sys/lwReportEpidemic/modules/dailyReport/getTodayHasReported.do", {
