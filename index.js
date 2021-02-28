@@ -11,7 +11,7 @@ const dotenv = require("dotenv")
 
 dotenv.config()
 
-const { NAME: NAME, PASSWORD: PASSWORD, DATASTR2: DATASTR2, DATASTR3: DATASTR3, APP_TOKEN: APP_TOKEN, UID: UID } = process.env;
+const { NAME: NAME, PASSWORD: PASSWORD, DATASTR2: DATASTR2, DATASTR3: DATASTR3, APP_TOKEN: APP_TOKEN, UID: UID, UID_ERR: UID_ERR } = process.env;
 
 // const USERNAME = core.getInput("USERNAME");
 // const PASSWORD = core.getInput("PASSWORD");
@@ -25,7 +25,7 @@ const dataStr2 = DATASTR2;
 const dataStr3 = DATASTR3;
 const USERNAME = NAME;
 
-if (USERNAME.localeCompare("") == 0 || PASSWORD.localeCompare("") == 0 || dataStr2.localeCompare("") == 0 || dataStr3.localeCompare("") == 0 || APP_TOKEN.localeCompare("") == 0 || UID.localeCompare("") == 0) {
+if (USERNAME.localeCompare("") == 0 || PASSWORD.localeCompare("") == 0 || dataStr2.localeCompare("") == 0 || dataStr3.localeCompare("") == 0 || APP_TOKEN.localeCompare("") == 0 || UID.localeCompare("") == 0 || UID_ERR.localeCompare("") == 0) {
     core.setFailed(`Action failed because of empty required secrets.`);
 }
 
@@ -127,6 +127,30 @@ function buildCookies() {
 async function sendMessage(message) {
     let uids = [];
     for (let i of UID.split(";")) {
+        if (i.length != 0)
+            uids.push(i);
+    }
+    let response = await fetch("http://wxpusher.zjiecode.com/api/send/message", {
+        "headers": {
+            "accept": "*/*",
+            "content-type": "application/json"
+        },
+        "body": JSON.stringify({
+            "appToken": APP_TOKEN,
+            "content": message,
+            "contentType": 1,//内容类型 1表示文字  2表示html(只发送body标签内部的数据即可，不包括body标签) 3表示markdown 
+            "uids": uids,
+            "url": undefined //原文链接，可选参数
+        }),
+        "method": "POST"
+    });
+
+    return await response.json();
+}
+
+async function sendErrorMessage(message) {
+    let uids = [];
+    for (let i of UID_ERR.split(";")) {
         if (i.length != 0)
             uids.push(i);
     }
@@ -290,9 +314,10 @@ async function mainFunction1() {
     HasReported = JSON.parse(HasReported);
 
     if (HasReported.datas.getTodayHasReported.totalSize == 0) { // not reported
-        hrstart = process.hrtime();
 
         core.info("Start check in process")
+        hrstart = process.hrtime();
+        core.info("Start to get server Time")
         //Get server time
         const serverTime = await page.evaluate(async () => {
             let response = await fetch("http://ehall.csust.edu.cn/qljfwapp/sys/lwReportEpidemic/api/daily/getServerTime.do", {
@@ -322,12 +347,17 @@ async function mainFunction1() {
         } else {
             throw new Error('Failed to get server time');
         }
+
         // let CheckinDate = mapString(a.data.date.split(" ")[0]);
         // let TimeSubmit = mapString(a.data.date);
         let TimeCreate = mapString(a.data.date.substring(0, a.data.date.length - 3));
         core.info("Time Created:" + TimeCreate)
+        hrend = process.hrtime(hrstart);
+        core.info("Get server time in " + hrend[0] + "s")
 
 
+        hrstart = process.hrtime();
+        core.info("Start to get today info")
         let todayInfo = await page.evaluate(async () => {
             let response = await fetch("http://ehall.csust.edu.cn/qljfwapp/sys/lwReportEpidemic/modules/dailyReport/getMyTodayReportWid.do", {
                 "headers": {
@@ -360,6 +390,11 @@ async function mainFunction1() {
         let submitContent = "WID=" + WID + "&NEED_CHECKIN_DATE=" + NEED_CHECKIN_DATE + dataStr2 + CZRQ + "&USER_ID=" + USERNAME + dataStr3 + TimeCreate;
         // console.log(submitContent);
 
+        hrend = process.hrtime(hrstart);
+        core.info("Get today info in " + hrend[0] + "s")
+
+        hrstart = process.hrtime();
+        core.info("Start to submit check in data")
         let submission = await page.evaluate(async (submitContent) => {
             let response = await fetch("http://ehall.csust.edu.cn/qljfwapp/sys/lwReportEpidemic/modules/dailyReport/T_REPORT_EPIDEMIC_CHECKIN_SAVE.do", {
                 "headers": {
@@ -382,10 +417,13 @@ async function mainFunction1() {
 
             return JSON.stringify(responseContent);
         }, submitContent);
-        core.info("submission return:");
+        //core.info("submission return:");
         //console.log(submission);
 
         submission = JSON.parse(submission);
+
+        hrend = process.hrtime(hrstart);
+        core.info("Finish submission in " + hrend[0] + "s")
         if (submission.code.localeCompare("#E111080000000") == 0) {//has submitted
             message += "检测到已签到，最近一次数据为\nNEED_CHECKIN_DATE:" + historyData.datas.getMyDailyReportDatas.rows[0].NEED_CHECKIN_DATE + "\nCREATED_AT:" + historyData.datas.getMyDailyReportDatas.rows[0].CREATED_AT;
         } else {// not submitted
@@ -414,11 +452,10 @@ async function mainFunction1() {
 
             core.info("Get History Data")
             historyData = JSON.parse(historyData);
-            message += "最近一次数据为\nNEED_CHECKIN_DATE:" + historyData.datas.getMyDailyReportDatas.rows[0].NEED_CHECKIN_DATE + "\nCREATED_AT:" + historyData.datas.getMyDailyReportDatas.rows[0].CREATED_AT;
+            message += "\n最近一次数据为\nNEED_CHECKIN_DATE:" + historyData.datas.getMyDailyReportDatas.rows[0].NEED_CHECKIN_DATE + "\nCREATED_AT:" + historyData.datas.getMyDailyReportDatas.rows[0].CREATED_AT;
         }
 
-        hrend = process.hrtime(hrstart);
-        core.info("Check in finished in " + hrend[0] + "s")
+        core.info("Check in finished")
     } else { //reported, send message notificaation
         message += "检测到已签到，最近一次数据为\nNEED_CHECKIN_DATE:" + historyData.datas.getMyDailyReportDatas.rows[0].NEED_CHECKIN_DATE + "\nCREATED_AT:" + historyData.datas.getMyDailyReportDatas.rows[0].CREATED_AT;
     }
@@ -438,6 +475,7 @@ async function main() {
         await sendMessage("打卡成功\n" + getTime() + mainMessage + "\n用时:" + (hrend[0] / 60).toFixed(2) + "分钟");
     } catch (e) {
         await sendMessage("打卡失败\n" + getTime() + "发生了错误，详情:" + e);
+        await sendErrorMessage("打卡失败\n" + getTime() + "发生了错误，详情:" + e);
         await browser.close();
         core.setFailed(`Action failed with error ${e}`);
     }

@@ -32,4 +32,5 @@ jobs:
           DATASTR3: ${{ secrets.DATASTR3 }}
           PASSWORD: ${{ secrets.PASSWORD }}
           UID: ${{ secrets.UID }}
+          UID_ERR: ${{ secrets.UID_ERR }}
           NAME: ${{ secrets.NAME }}
