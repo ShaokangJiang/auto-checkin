@@ -283,7 +283,7 @@ async function mainFunction1() {
     hrend = process.hrtime(hrstart);
     core.info("Get History Data in " + hrend[0] + "s")
     historyData = JSON.parse(historyData);
-
+    await new Promise(r => setTimeout(r, 5000));
     //Get today has reported
     hrstart = process.hrtime();
     core.info("Start to load HasReported info")
@@ -392,6 +392,7 @@ async function mainFunction1() {
 
         hrend = process.hrtime(hrstart);
         core.info("Get today info in " + hrend[0] + "s")
+        await new Promise(r => setTimeout(r, 10000));
 
         hrstart = process.hrtime();
         core.info("Start to submit check in data")
