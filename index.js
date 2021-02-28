@@ -384,7 +384,7 @@ async function mainFunction1() {
         let CZRQ = mapString(todayInfo.datas.getMyTodayReportWid.rows[0].CZRQ); //sample 2021-02-27 00:45:58
         let WID = todayInfo.datas.getMyTodayReportWid.rows[0].WID; // sample BC1BFB84364300E4E0540010E03A9B2A
         let NEED_CHECKIN_DATE = todayInfo.datas.getMyTodayReportWid.rows[0].NEED_CHECKIN_DATE;//2021-02-27
-        core.info("CZRQ:" + CZRQ + "WID:" + WID + "NEED:" + NEED_CHECKIN_DATE);
+        // core.info("CZRQ:" + CZRQ + "WID:" + WID + "NEED:" + NEED_CHECKIN_DATE);
 
         // let submitContent = dataStr1 + CheckinDate + dataStr2 + TimeSubmit + "&USER_ID=" + USERNAME + dataStr3 + TimeCreate;
         let submitContent = "WID=" + WID + "&NEED_CHECKIN_DATE=" + NEED_CHECKIN_DATE + dataStr2 + CZRQ + "&USER_ID=" + USERNAME + dataStr3 + TimeCreate;
