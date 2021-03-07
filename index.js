@@ -187,6 +187,7 @@ async function mainFunction1() {
     // use try catch without timeout at here
     // const browser = await puppeteer.launch({ headless: true , args: [`--no-sandbox`, `--disable-setuid-sandbox`]});\
     let message = "";
+    let screenshot = true;
     let hrstart = process.hrtime();
     browser = await puppeteer.launch({ headless: true });
     const page = await browser.newPage();
@@ -250,6 +251,7 @@ async function mainFunction1() {
                 await page.reload({ waitUntil: 'networkidle0', timeout: 1500000 }); // wait until page load
             } catch (e) {
                 core.error("Wait too long for check in page again, stop waiting and try to continue");
+                screenshot = false;
             }
         }
     }
@@ -459,6 +461,26 @@ async function mainFunction1() {
         core.info("Check in finished")
     } else { //reported, send message notificaation
         message += "检测到已签到，最近一次数据为\nNEED_CHECKIN_DATE:" + historyData.datas.getMyDailyReportDatas.rows[0].NEED_CHECKIN_DATE + "\nCREATED_AT:" + historyData.datas.getMyDailyReportDatas.rows[0].CREATED_AT;
+    }
+
+    // Get base64 screenshot and save to worker KV for a spefcific time
+    let screenData;
+    if(screenshot){
+        await page.evaluate(() => {
+            document.querySelectorAll("a[data-action='detail']")[0].click();
+        });
+
+        try {
+            await page.waitForNavigation({ waitUntil: 'networkidle0', timeout: 200000 });
+        } catch (e) {
+                core.error("Wait too long for taking screenshot, no screenshot will be taken");
+                screenshot = false;
+                
+                await browser.close();
+                return message;
+        }
+        screenData = await page.screenshot({ encoding: "base64", fullPage: true })
+        core.info(screenData);
     }
 
     await browser.close();
