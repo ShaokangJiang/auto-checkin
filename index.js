@@ -6,12 +6,14 @@ const urlencode = require('urlencode');
 const cookie = require('cookie');
 const HTMLParser = require('node-html-parser');
 const core = require('@actions/core');
+const UIDGenerator = require('uid-generator');
+const uidgen = new UIDGenerator();
 
 const dotenv = require("dotenv")
 
 dotenv.config()
 
-const { NAME: NAME, PASSWORD: PASSWORD, DATASTR2: DATASTR2, DATASTR3: DATASTR3, APP_TOKEN: APP_TOKEN, UID: UID, UID_ERR: UID_ERR } = process.env;
+const { CLOUDFLARE_EMAIL: CLOUDFLARE_EMAIL, CLOUDFLARE_API: CLOUDFLARE_API, CLOUDFLARE_ID: CLOUDFLARE_ID, KV_ID: KV_ID, NAME: NAME, PASSWORD: PASSWORD, DATASTR2: DATASTR2, DATASTR3: DATASTR3, APP_TOKEN: APP_TOKEN, UID: UID, UID_ERR: UID_ERR } = process.env;
 
 // const USERNAME = core.getInput("USERNAME");
 // const PASSWORD = core.getInput("PASSWORD");
@@ -25,11 +27,12 @@ const dataStr2 = DATASTR2;
 const dataStr3 = DATASTR3;
 const USERNAME = NAME;
 
-if (USERNAME.localeCompare("") == 0 || PASSWORD.localeCompare("") == 0 || dataStr2.localeCompare("") == 0 || dataStr3.localeCompare("") == 0 || APP_TOKEN.localeCompare("") == 0 || UID.localeCompare("") == 0 || UID_ERR.localeCompare("") == 0) {
+if (CLOUDFLARE_EMAIL.localeCompare("") == 0 || CLOUDFLARE_API.localeCompare("") == 0 || CLOUDFLARE_ID.localeCompare("") == 0 || KV_ID.localeCompare("") == 0 || USERNAME.localeCompare("") == 0 || PASSWORD.localeCompare("") == 0 || dataStr2.localeCompare("") == 0 || dataStr3.localeCompare("") == 0 || APP_TOKEN.localeCompare("") == 0 || UID.localeCompare("") == 0 || UID_ERR.localeCompare("") == 0) {
     core.setFailed(`Action failed because of empty required secrets.`);
 }
 
 let browser;
+var url = undefined;
 
 var Cookies = {};
 
@@ -116,6 +119,7 @@ function getDataRaw() {
 
 // }
 
+
 function buildCookies() {
     var toRe = "";
     for (let i of newCookies) {
@@ -140,7 +144,7 @@ async function sendMessage(message) {
             "content": message,
             "contentType": 1,//内容类型 1表示文字  2表示html(只发送body标签内部的数据即可，不包括body标签) 3表示markdown 
             "uids": uids,
-            "url": undefined //原文链接，可选参数
+            "url": url //原文链接，可选参数
         }),
         "method": "POST"
     });
@@ -181,6 +185,22 @@ function mapString(str) {
     str = replaceAll(str, "/", "-")
     str = replaceAll(str, ":", "%3A")
     return str;
+}
+
+
+async function writeToKV(message) {
+    let key = await uidgen.generate();
+    let response = await fetch("https://api.cloudflare.com/client/v4/accounts/" + CLOUDFLARE_ID + "/storage/kv/namespaces/" + KV_ID + "/values/" + key, {
+        body: message,
+        headers: {
+            "Content-Type": "text/plain",
+            "X-Auth-Email": CLOUDFLARE_EMAIL,
+            "X-Auth-Key": CLOUDFLARE_API
+        },
+        method: "PUT"
+    })
+    core.info("Write to KV: " + (await response.json()).success);
+    return key;
 }
 
 async function mainFunction1() {
@@ -465,22 +485,24 @@ async function mainFunction1() {
 
     // Get base64 screenshot and save to worker KV for a spefcific time
     let screenData;
-    if(screenshot){
+    if (screenshot) {
         await page.evaluate(() => {
             document.querySelectorAll("a[data-action='detail']")[0].click();
         });
 
         try {
-            await page.waitForNavigation({ waitUntil: 'networkidle0', timeout: 200000 });
+            await page.waitForTimeout(30000);
         } catch (e) {
-                core.error("Wait too long for taking screenshot, no screenshot will be taken");
-                screenshot = false;
-                
-                await browser.close();
-                return message;
+            core.error("Wait too long for taking screenshot, no screenshot will be taken");
+            screenshot = false;
+
+            await browser.close();
+            return message;
         }
         screenData = await page.screenshot({ encoding: "base64", fullPage: true })
         core.info(screenData);
+        let key = await writeToKV(screenData);
+        url = "https://viewer.shaokang.ga/index.html?key=" + key;
     }
 
     await browser.close();
