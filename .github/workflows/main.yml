@@ -28,8 +28,6 @@ jobs:
         run: sudo apt-get install language-pack-zh-hant language-pack-zh-hant-base language-pack-gnome-zh-hant language-pack-gnome-zh-hant-base
       - name: Install Language - setting
         run: sudo apt-get install `check-language-support -l zh`
-      - name: Set interface language
-        run: gsettings set org.gnome.gedit.preferences.encodings auto-detected "['UTF-8','GB18030','GB2312','GBK','BIG5','CURRENT','UTF-16']"
       - name: Truetype reset
         run: sudo chmod 777 /usr/share/fonts/truetype/*
       - name: Purge
