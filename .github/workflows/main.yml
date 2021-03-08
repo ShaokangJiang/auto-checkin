@@ -25,13 +25,17 @@ jobs:
         with:
           node-version: '10'
       - name: Install Language - Initial
-        run: sudo apt-get install language-pack-zh-hant language-pack-zh-hant-base language-pack-gnome-zh-hant language-pack-gnome-zh-hant-base
+        run: sudo apt-get install language-pack-zh-hant ttf-wqy-zenhei chromium-browser chromium-browser-l10n ttf-ubuntu-font-family fonts-droid language-pack-zh-hant-base language-pack-gnome-zh-hant language-pack-gnome-zh-hant-base
       - name: Install Language - setting
         run: sudo apt-get install `check-language-support -l zh`
       - name: Truetype reset
         run: sudo chmod 777 /usr/share/fonts/truetype/*
       - name: Purge
         run: sudo fc-cache -fv
+      - name: write to locale
+        run: printf "LANG=zh_CN.UTF-8\nLANGUAGE=zh_CN:zh\nLC_NUMERIC=zh_CN\nLC_TIME=zh_CN\nLC_MONETARY=zh_CN\nLC_PAPER=zh_CN\nLC_NAME=zh_CN\nLC_ADDRESS=zh_CN\nLC_TELEPHONE=zh_CN\nLC_MEASUREMENT=zh_CN\nLC_IDENTIFICATION=zh_CN\nLC_ALL=zh_CN.UTF-8" >> /etc/environment
+      - name: write to locale - check
+        run: cat /etc/environment
       - run: npm install
       - run: node index.js
         env: 
