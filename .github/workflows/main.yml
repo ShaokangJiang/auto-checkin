@@ -6,7 +6,7 @@ name: CI
 on:
   # Triggers the workflow on push or pull request events but only for the master branch
   schedule: # Run workflow automatically
-    - cron: '30 17,21 * * *' # Runs every hour, on the hour
+    - cron: '30 17,23 * * *' # Runs every hour, on the hour
   # Allows you to run this workflow manually from the Actions tab
   workflow_dispatch:
 
@@ -24,6 +24,12 @@ jobs:
       - uses: actions/setup-node@v2
         with:
           node-version: '10'
+      - name: Install Language - Initial
+        run: sudo apt-get install language-pack-zh-hant language-pack-zh-hant-base language-pack-gnome-zh-hant language-pack-gnome-zh-hant-base
+      - name: Install Language - setting
+        run: sudo apt-get install `check-language-support -l zh`
+      - name: Install Language - set up locale
+        run: sudo localectl set-locale.UTF-8
       - run: npm install
       - run: node index.js
         env: 
