@@ -13,7 +13,7 @@ const dotenv = require("dotenv")
 
 dotenv.config()
 
-const { CLOUDFLARE_EMAIL: CLOUDFLARE_EMAIL, CLOUDFLARE_API: CLOUDFLARE_API, CLOUDFLARE_ID: CLOUDFLARE_ID, KV_ID: KV_ID, NAME: NAME, PASSWORD: PASSWORD, DATASTR2: DATASTR2, DATASTR3: DATASTR3, APP_TOKEN: APP_TOKEN, UID: UID, UID_ERR: UID_ERR } = process.env;
+const { URL_BASE: URL_BASE, CLOUDFLARE_EMAIL: CLOUDFLARE_EMAIL, CLOUDFLARE_API: CLOUDFLARE_API, CLOUDFLARE_ID: CLOUDFLARE_ID, KV_ID: KV_ID, NAME: NAME, PASSWORD: PASSWORD, DATASTR2: DATASTR2, DATASTR3: DATASTR3, APP_TOKEN: APP_TOKEN, UID: UID, UID_ERR: UID_ERR } = process.env;
 
 // const USERNAME = core.getInput("USERNAME");
 // const PASSWORD = core.getInput("PASSWORD");
@@ -27,7 +27,7 @@ const dataStr2 = DATASTR2;
 const dataStr3 = DATASTR3;
 const USERNAME = NAME;
 
-if (CLOUDFLARE_EMAIL.localeCompare("") == 0 || CLOUDFLARE_API.localeCompare("") == 0 || CLOUDFLARE_ID.localeCompare("") == 0 || KV_ID.localeCompare("") == 0 || USERNAME.localeCompare("") == 0 || PASSWORD.localeCompare("") == 0 || dataStr2.localeCompare("") == 0 || dataStr3.localeCompare("") == 0 || APP_TOKEN.localeCompare("") == 0 || UID.localeCompare("") == 0 || UID_ERR.localeCompare("") == 0) {
+if (URL_BASE.localeCompare("") == 0 || CLOUDFLARE_EMAIL.localeCompare("") == 0 || CLOUDFLARE_API.localeCompare("") == 0 || CLOUDFLARE_ID.localeCompare("") == 0 || KV_ID.localeCompare("") == 0 || USERNAME.localeCompare("") == 0 || PASSWORD.localeCompare("") == 0 || dataStr2.localeCompare("") == 0 || dataStr3.localeCompare("") == 0 || APP_TOKEN.localeCompare("") == 0 || UID.localeCompare("") == 0 || UID_ERR.localeCompare("") == 0) {
     core.setFailed(`Action failed because of empty required secrets.`);
 }
 
@@ -190,7 +190,7 @@ function mapString(str) {
 
 async function writeToKV(message) {
     let key = await uidgen.generate();
-    let response = await fetch("https://api.cloudflare.com/client/v4/accounts/" + CLOUDFLARE_ID + "/storage/kv/namespaces/" + KV_ID + "/values/" + key, {
+    let response = await fetch("https://api.cloudflare.com/client/v4/accounts/" + CLOUDFLARE_ID + "/storage/kv/namespaces/" + KV_ID + "/values/" + key + "?expiration_ttl=57600", {
         body: message,
         headers: {
             "Content-Type": "text/plain",
@@ -212,7 +212,7 @@ async function mainFunction1() {
     browser = await puppeteer.launch({ headless: true });
     const page = await browser.newPage();
     // await page.setDefaultNavigationTimeout(500000);
-    await page.setViewport({ width: 1920, height: 1080 });
+    await page.setViewport({ width: 1024, height: 768 });
     await page.setRequestInterception(true);
 
     page.on('request', (req) => {
@@ -450,7 +450,7 @@ async function mainFunction1() {
         if (submission.code.localeCompare("#E111080000000") == 0) {//has submitted
             message += "检测到已签到，最近一次数据为\nNEED_CHECKIN_DATE:" + historyData.datas.getMyDailyReportDatas.rows[0].NEED_CHECKIN_DATE + "\nCREATED_AT:" + historyData.datas.getMyDailyReportDatas.rows[0].CREATED_AT;
         } else {// not submitted
-            message += "已成功签到，T_REPORT_EPIDEMIC_CHECKIN_SAVE:" + submission.datas.T_REPORT_EPIDEMIC_CHECKIN_SAVE;
+            message += "已成功签到，CHECKIN_SAVE:" + submission.datas.T_REPORT_EPIDEMIC_CHECKIN_SAVE;
             historyData = await page.evaluate(async () => {
                 let response = await fetch("http://ehall.csust.edu.cn/qljfwapp/sys/lwReportEpidemic/modules/dailyReport/getMyDailyReportDatas.do", {
                     "headers": {
@@ -500,9 +500,9 @@ async function mainFunction1() {
             return message;
         }
         screenData = await page.screenshot({ encoding: "base64", fullPage: true })
-        core.info(screenData);
+        // core.info(screenData);
         let key = await writeToKV(screenData);
-        url = "https://viewer.shaokang.ga/index.html?key=" + key;
+        url = URL_BASE + key;
     }
 
     await browser.close();

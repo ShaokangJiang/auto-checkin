@@ -34,3 +34,8 @@ jobs:
           UID: ${{ secrets.UID }}
           UID_ERR: ${{ secrets.UID_ERR }}
           NAME: ${{ secrets.NAME }}
+          CLOUDFLARE_API: ${{ secrets.CLOUDFLARE_API }}
+          CLOUDFLARE_EMAIL: ${{ secrets.CLOUDFLARE_EMAIL }}
+          CLOUDFLARE_ID: ${{ secrets.CLOUDFLARE_ID }}
+          KV_ID: ${{ secrets.KV_ID }}
+          URL_BASE: ${{ secrets.URL_BASE }}
