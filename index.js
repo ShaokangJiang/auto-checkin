@@ -190,7 +190,7 @@ function mapString(str) {
 
 async function writeToKV(message) {
     let key = await uidgen.generate();
-    let response = await fetch("https://api.cloudflare.com/client/v4/accounts/" + CLOUDFLARE_ID + "/storage/kv/namespaces/" + KV_ID + "/values/" + key + "?expiration_ttl=28800", {
+    let response = await fetch("https://api.cloudflare.com/client/v4/accounts/" + CLOUDFLARE_ID + "/storage/kv/namespaces/" + KV_ID + "/values/" + key + "?expiration_ttl=57600", {
         body: message,
         headers: {
             "Content-Type": "text/plain",
@@ -477,8 +477,9 @@ async function mainFunction1() {
             historyData = JSON.parse(historyData);
             message += "\n最近一次数据为\nNEED_CHECKIN_DATE:" + historyData.datas.getMyDailyReportDatas.rows[0].NEED_CHECKIN_DATE + "\nCREATED_AT:" + historyData.datas.getMyDailyReportDatas.rows[0].CREATED_AT;
         }
-
         core.info("Check in finished")
+        await browser.close();
+        return message;
     } else { //reported, send message notificaation
         message += "检测到已签到，最近一次数据为\nNEED_CHECKIN_DATE:" + historyData.datas.getMyDailyReportDatas.rows[0].NEED_CHECKIN_DATE + "\nCREATED_AT:" + historyData.datas.getMyDailyReportDatas.rows[0].CREATED_AT;
     }
