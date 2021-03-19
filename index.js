@@ -190,7 +190,7 @@ function mapString(str) {
 
 async function writeToKV(message) {
     let key = await uidgen.generate();
-    let response = await fetch("https://api.cloudflare.com/client/v4/accounts/" + CLOUDFLARE_ID + "/storage/kv/namespaces/" + KV_ID + "/values/" + key + "?expiration_ttl=25200", {
+    let response = await fetch("https://api.cloudflare.com/client/v4/accounts/" + CLOUDFLARE_ID + "/storage/kv/namespaces/" + KV_ID + "/values/" + key + "?expiration_ttl=57600", {
         body: message,
         headers: {
             "Content-Type": "text/plain",
