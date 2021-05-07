@@ -520,10 +520,14 @@ async function main() {
 
         await sendMessage("打卡成功\n" + getTime() + mainMessage + "\n用时:" + (hrend[0] / 60).toFixed(2) + "分钟");
     } catch (e) {
-        await sendMessage("打卡失败\n" + getTime() + "发生了错误，详情:" + e);
-        await sendErrorMessage("打卡失败\n" + getTime() + "发生了错误，详情:" + e);
-        await browser.close();
+        try {
+            await browser.close();
+            await sendMessage("打卡失败\n" + getTime() + "发生了错误，详情:" + e);
+            await sendErrorMessage("打卡失败\n" + getTime() + "发生了错误，详情:" + e);
+        } catch (e) {
+        }
         core.setFailed(`Action failed with error ${e}`);
+        process.exit(1);
     }
     //getTime();
 }
