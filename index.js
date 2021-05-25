@@ -503,7 +503,7 @@ async function mainFunction1() {
         screenData = await page.screenshot({ encoding: "base64", fullPage: true })
         // core.info(screenData);
         let key = await writeToKV(screenData);
-        // url = URL_BASE + key;
+        url = URL_BASE + key;
     }
 
     await browser.close();
