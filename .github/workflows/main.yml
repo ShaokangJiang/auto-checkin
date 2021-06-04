@@ -26,8 +26,6 @@ jobs:
           node-version: '10'
       - name: Install Language - Initial
         run: sudo apt-get install language-pack-zh-hant ttf-wqy-microhei ttf-wqy-zenhei chromium-browser chromium-browser-l10n ttf-ubuntu-font-family fonts-droid-fallback language-pack-zh-hant-base language-pack-gnome-zh-hant language-pack-gnome-zh-hant-base
-      - name: Install Language - setting
-        run: sudo apt-get install `check-language-support -l zh`
       - run: npm install
       - run: node index.js
         env: 
